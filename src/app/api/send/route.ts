@@ -30,6 +30,7 @@ const schema = z.object({
     userAgent: z.string().optional(),
     timestamp: z.coerce.number().int().optional(),
     id: z.string().optional(),
+    clientUserId: z.string().optional(),
   }),
 });
 
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
       tag,
       timestamp,
       id,
+      clientUserId,
     } = payload;
 
     // Cache check
@@ -101,10 +103,16 @@ export async function POST(request: Request) {
     const sessionSalt = hash(startOfMonth(createdAt).toUTCString());
     const visitSalt = hash(startOfHour(createdAt).toUTCString());
 
-    const sessionId = id ? uuid(websiteId, id) : uuid(websiteId, ip, userAgent, sessionSalt);
+    const sessionId = id
+      ? uuid(websiteId, id, clientUserId || 'anonymous')
+      : uuid(websiteId, ip, userAgent, sessionSalt, clientUserId || 'anonymous');
+
+    // Create a session if not found or if sessionId has changed (clientUserId changed)
+    const shouldCreateSession =
+      !clickhouse.enabled && (!cache?.sessionId || cache?.sessionId !== sessionId);
 
     // Create a session if not found
-    if (!clickhouse.enabled && !cache?.sessionId) {
+    if (shouldCreateSession) {
       await createSession(
         {
           id: sessionId,
@@ -118,15 +126,16 @@ export async function POST(request: Request) {
           region,
           city,
           distinctId: id,
+          clientUserId: clientUserId ? String(clientUserId) : null,
         },
         { skipDuplicates: true },
       );
     }
 
     // Visit info
-    let visitId = cache?.visitId || uuid(sessionId, visitSalt);
-    let iat = cache?.iat || now;
-
+    const cacheValid = cache?.sessionId === sessionId;
+    let visitId = cacheValid ? cache?.visitId : uuid(sessionId, visitSalt);
+    let iat = cacheValid ? cache?.iat : now;
     // Expire visit after 30 minutes
     if (!timestamp && now - iat > 1800) {
       visitId = uuid(sessionId, visitSalt);
@@ -175,6 +184,11 @@ export async function POST(request: Request) {
           referrerDomain = referrerUrl.hostname.replace(/^www\./, '');
         }
       }
+      const eventUserId = clientUserId
+        ? String(clientUserId)
+        : data && data.clientUserId
+        ? String(data.clientUserId)
+        : null;
 
       await saveEvent({
         websiteId,
@@ -190,6 +204,7 @@ export async function POST(request: Request) {
         referrerPath: safeDecodeURI(referrerPath),
         referrerQuery,
         referrerDomain,
+        clientUserId: eventUserId ? String(eventUserId) : null,
 
         // Session
         distinctId: id,
@@ -232,6 +247,7 @@ export async function POST(request: Request) {
           sessionData: data,
           distinctId: id,
           createdAt,
+          clientUserId: clientUserId ? String(clientUserId) : null,
         });
       }
     }

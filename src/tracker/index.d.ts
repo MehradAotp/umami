@@ -53,6 +53,13 @@ export type TrackedProperties = {
    * @example 'b59e9c65-ae32-47f1-8400-119fcf4861c4'
    */
   website: string;
+
+  /**
+   * User ID
+   *
+   * @example '1234567890'
+   */
+  clientUserId?: string;
 };
 
 export type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
@@ -146,6 +153,7 @@ export type UmamiTracker = {
      */
     (eventFunction: CustomEventFunction): Promise<string>;
   };
+  setClientUserId: (clientUserId: string) => void;
 };
 
 interface Window {

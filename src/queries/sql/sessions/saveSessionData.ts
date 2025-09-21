@@ -13,6 +13,7 @@ export interface SaveSessionDataArgs {
   sessionData: DynamicData;
   distinctId?: string;
   createdAt?: Date;
+  clientUserId?: string;
 }
 
 export async function saveSessionData(data: SaveSessionDataArgs) {
@@ -28,6 +29,7 @@ export async function relationalQuery({
   sessionData,
   distinctId,
   createdAt,
+  clientUserId,
 }: SaveSessionDataArgs) {
   const { client } = prisma;
 
@@ -44,6 +46,7 @@ export async function relationalQuery({
     dataType: a.dataType,
     distinctId,
     createdAt,
+    clientUserId,
   }));
 
   const existing = await client.sessionData.findMany({
@@ -84,6 +87,7 @@ async function clickhouseQuery({
   sessionData,
   distinctId,
   createdAt,
+  clientUserId,
 }: SaveSessionDataArgs) {
   const { insert, getUTCString } = clickhouse;
   const { sendMessage } = kafka;
@@ -101,6 +105,7 @@ async function clickhouseQuery({
       date_value: dataType === DATA_TYPE.date ? getUTCString(value) : null,
       distinct_id: distinctId,
       created_at: getUTCString(createdAt),
+      clientUserId,
     };
   });
 

@@ -15,6 +15,7 @@ export interface SaveEventDataArgs {
   eventName?: string;
   eventData: DynamicData;
   createdAt?: Date;
+  clientUserId?: string;
 }
 
 export async function saveEventData(data: SaveEventDataArgs) {
@@ -25,7 +26,7 @@ export async function saveEventData(data: SaveEventDataArgs) {
 }
 
 async function relationalQuery(data: SaveEventDataArgs) {
-  const { websiteId, eventId, eventData, createdAt } = data;
+  const { websiteId, eventId, eventData, createdAt, clientUserId } = data;
 
   const jsonKeys = flattenJSON(eventData);
 
@@ -40,6 +41,7 @@ async function relationalQuery(data: SaveEventDataArgs) {
     dateValue: a.dataType === DATA_TYPE.date ? new Date(a.value) : null,
     dataType: a.dataType,
     createdAt,
+    clientUserId,
   }));
 
   await prisma.client.eventData.createMany({
@@ -48,7 +50,8 @@ async function relationalQuery(data: SaveEventDataArgs) {
 }
 
 async function clickhouseQuery(data: SaveEventDataArgs) {
-  const { websiteId, sessionId, eventId, urlPath, eventName, eventData, createdAt } = data;
+  const { websiteId, sessionId, eventId, urlPath, eventName, eventData, createdAt, clientUserId } =
+    data;
 
   const { insert, getUTCString } = clickhouse;
   const { sendMessage } = kafka;
@@ -68,6 +71,7 @@ async function clickhouseQuery(data: SaveEventDataArgs) {
       number_value: dataType === DATA_TYPE.number ? value : null,
       date_value: dataType === DATA_TYPE.date ? getUTCString(value) : null,
       created_at: getUTCString(createdAt),
+      clientUserId,
     };
   });
 

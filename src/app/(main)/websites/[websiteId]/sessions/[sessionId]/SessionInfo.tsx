@@ -20,6 +20,8 @@ export default function SessionInfo({ data }) {
         </dd>
         <dt>{formatMessage(labels.distinctId)}</dt>
         <dd>{data?.distinctId}</dd>
+        <dt>User ID</dt>
+        <dd>{data?.clientUserId || '-'}</dd>
         <dt>{formatMessage(labels.lastSeen)}</dt>
         <dd>{formatTimezoneDate(data?.lastAt, 'PPPPpp')}</dd>
 

@@ -39,6 +39,7 @@ model Session {
   region     String?   @db.Char(20)
   city       String?   @db.VarChar(50)
   distinctId String?   @map("distinct_id") @db.VarChar(50)
+  clientUserId String?   @map("user_id") @db.VarChar(255)
   createdAt  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
 
   websiteEvent WebsiteEvent[]
@@ -116,6 +117,7 @@ model WebsiteEvent {
   eventName      String?   @map("event_name") @db.VarChar(50)
   tag            String?   @db.VarChar(50)
   hostname       String?   @db.VarChar(100)
+  clientUserId   String? @map("client_user_id") @db.VarChar(255)
 
   eventData EventData[]
   session   Session     @relation(fields: [sessionId], references: [id])
@@ -147,6 +149,7 @@ model EventData {
   dateValue      DateTime? @map("date_value") @db.Timestamp(0)
   dataType       Int       @map("data_type") @db.UnsignedInt
   createdAt      DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  clientUserId   String? @map("client_user_id") @db.VarChar(255)
 
   website      Website      @relation(fields: [websiteId], references: [id])
   websiteEvent WebsiteEvent @relation(fields: [websiteEventId], references: [id])
@@ -169,6 +172,7 @@ model SessionData {
   dateValue   DateTime? @map("date_value") @db.Timestamp(0)
   dataType    Int       @map("data_type") @db.UnsignedInt
   distinctId  String?   @map("distinct_id") @db.VarChar(50)
+  clientUserId String?   @map("user_id") @db.VarChar(255)
   createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
 
   website Website @relation(fields: [websiteId], references: [id])
@@ -259,6 +263,7 @@ model Revenue {
   currency    String    @db.VarChar(100)
   revenue     Decimal?  @db.Decimal(19, 4)
   createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  clientUserId   String? @map("client_user_id") @db.VarChar(255)
 
   website Website @relation(fields: [websiteId], references: [id])
   session Session @relation(fields: [sessionId], references: [id])

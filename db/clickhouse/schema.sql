@@ -39,6 +39,7 @@ CREATE TABLE umami.website_event
     event_name String,
     tag String,
     distinct_id String,
+    user_id String,
     created_at DateTime('UTC'),
     job_id Nullable(UUID)
 )
@@ -60,6 +61,7 @@ CREATE TABLE umami.event_data
     number_value Nullable(Decimal64(4)),
     date_value Nullable(DateTime('UTC')),
     data_type UInt32,
+    user_id String,
     created_at DateTime('UTC'),
     job_id Nullable(UUID)
 )
@@ -77,6 +79,7 @@ CREATE TABLE umami.session_data
     date_value Nullable(DateTime('UTC')),
     data_type UInt32,
     distinct_id String,
+    user_id String,
     created_at DateTime('UTC'),
     job_id Nullable(UUID)
 )
@@ -123,6 +126,7 @@ CREATE TABLE umami.website_event_stats_hourly
     max_time SimpleAggregateFunction(max, DateTime('UTC')),
     tag SimpleAggregateFunction(groupArrayArray, Array(String)),
     distinct_id String,
+    user_id LowCardinality(String),
     created_at Datetime('UTC')
 )
 ENGINE = AggregatingMergeTree

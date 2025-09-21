@@ -10,6 +10,7 @@ export interface SaveRevenueArgs {
   currency: string;
   revenue: number;
   createdAt: Date;
+  clientUserId?: string;
 }
 
 export async function saveRevenue(data: SaveRevenueArgs) {
@@ -19,7 +20,8 @@ export async function saveRevenue(data: SaveRevenueArgs) {
 }
 
 async function relationalQuery(data: SaveRevenueArgs) {
-  const { websiteId, sessionId, eventId, eventName, currency, revenue, createdAt } = data;
+  const { websiteId, sessionId, eventId, eventName, currency, revenue, createdAt, clientUserId } =
+    data;
 
   await prisma.client.revenue.create({
     data: {
@@ -31,6 +33,7 @@ async function relationalQuery(data: SaveRevenueArgs) {
       currency,
       revenue,
       createdAt,
+      clientUserId,
     },
   });
 }

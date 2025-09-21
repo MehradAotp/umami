@@ -21,6 +21,7 @@ export interface SaveEventArgs {
   referrerPath?: string;
   referrerQuery?: string;
   referrerDomain?: string;
+  clientUserId?: string;
 
   // Session
   distinctId?: string;
@@ -87,6 +88,7 @@ async function relationalQuery({
   ttclid,
   lifatid,
   twclid,
+  clientUserId,
 }: SaveEventArgs) {
   const websiteEventId = uuid();
 
@@ -118,6 +120,7 @@ async function relationalQuery({
       tag,
       hostname,
       createdAt,
+      clientUserId,
     },
   });
 
@@ -130,6 +133,7 @@ async function relationalQuery({
       eventName: eventName?.substring(0, EVENT_NAME_LENGTH),
       eventData,
       createdAt,
+      clientUserId,
     });
 
     const { revenue, currency } = eventData;
@@ -143,6 +147,7 @@ async function relationalQuery({
         currency,
         revenue,
         createdAt,
+        clientUserId,
       });
     }
   }
@@ -183,6 +188,7 @@ async function clickhouseQuery({
   ttclid,
   lifatid,
   twclid,
+  clientUserId,
 }: SaveEventArgs) {
   const { insert, getUTCString } = clickhouse;
   const { sendMessage } = kafka;
@@ -217,6 +223,7 @@ async function clickhouseQuery({
     event_name: eventName ? eventName?.substring(0, EVENT_NAME_LENGTH) : null,
     tag: tag,
     distinct_id: distinctId,
+    clientUserId: clientUserId,
     created_at: getUTCString(createdAt),
     browser,
     os,
@@ -241,6 +248,7 @@ async function clickhouseQuery({
       eventName: eventName?.substring(0, EVENT_NAME_LENGTH),
       eventData,
       createdAt,
+      clientUserId,
     });
   }
 }

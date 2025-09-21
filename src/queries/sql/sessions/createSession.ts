@@ -17,6 +17,7 @@ export async function createSession(
     region,
     city,
     distinctId,
+    clientUserId,
   } = data;
 
   try {
@@ -33,6 +34,7 @@ export async function createSession(
         region,
         city,
         distinctId,
+        clientUserId,
       },
     });
   } catch (e: any) {

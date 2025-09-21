@@ -60,6 +60,7 @@
     referrer: currentRef,
     tag,
     id: identity ? identity : undefined,
+    clientUserId: clientUserId ? clientUserId : undefined,
   });
 
   const hasDoNotTrack = () => {
@@ -163,7 +164,7 @@
         body: JSON.stringify({ type, payload }),
         headers: {
           'Content-Type': 'application/json',
-          ...(typeof cache !== 'undefined' && { 'x-umami-cache': cache }),
+          ...(cache && { 'x-umami-cache': cache }),
         },
         credentials: 'omit',
       });
@@ -199,7 +200,7 @@
       identity = id;
     }
 
-    cache = '';
+    cache = undefined;
     return send(
       {
         ...getPayload(),
@@ -209,13 +210,21 @@
     );
   };
 
+  const setClientUserId = userId => {
+    clientUserId = userId;
+    cache = undefined;
+  };
+
   /* Start */
 
   if (!window.umami) {
     window.umami = {
       track,
       identify,
+      setClientUserId,
     };
+  } else {
+    window.umami.setClientUserId = setClientUserId;
   }
 
   let currentUrl = normalize(href);
@@ -225,6 +234,7 @@
   let disabled = false;
   let cache;
   let identity;
+  let clientUserId;
 
   if (autoTrack && !trackingDisabled()) {
     if (document.readyState === 'complete') {

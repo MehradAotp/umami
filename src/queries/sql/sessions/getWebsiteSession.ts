@@ -25,6 +25,7 @@ async function relationalQuery(websiteId: string, sessionId: string) {
       country,
       region,
       city,
+      user_id as "clientUserId",
       min(min_time) as "firstAt",
       max(max_time) as "lastAt",
       count(distinct visit_id) as visits,
@@ -44,6 +45,7 @@ async function relationalQuery(websiteId: string, sessionId: string) {
           session.country,
           session.region,
           session.city,
+          session.user_id,
           min(website_event.created_at) as min_time,
           max(website_event.created_at) as max_time,
           sum(case when website_event.event_type = 1 then 1 else 0 end) as views,
@@ -52,8 +54,8 @@ async function relationalQuery(websiteId: string, sessionId: string) {
     join website_event on website_event.session_id = session.session_id
     where session.website_id = {{websiteId::uuid}}
       and session.session_id = {{sessionId::uuid}}
-    group by session.session_id, session.distinct_id, visit_id, session.website_id, session.browser, session.os, session.device, session.screen, session.language, session.country, session.region, session.city) t
-    group by id, distinct_id, website_id, browser, os, device, screen, language, country, region, city;
+    group by session.session_id, session.distinct_id, visit_id, session.website_id, session.browser, session.os, session.device, session.screen, session.language, session.country, session.region, session.city, session.user_id) t
+    group by id, distinct_id, website_id, browser, os, device, screen, language, country, region, city, user_id;
     `,
     { websiteId, sessionId },
   ).then(result => result?.[0]);
@@ -75,6 +77,7 @@ async function clickhouseQuery(websiteId: string, sessionId: string) {
       country,
       region,
       city,
+      user_id as "clientUserId",
       ${getDateStringSQL('min(min_time)')} as firstAt,
       ${getDateStringSQL('max(max_time)')} as lastAt,
       uniq(visit_id) visits,
@@ -94,6 +97,7 @@ async function clickhouseQuery(websiteId: string, sessionId: string) {
               country,
               region,
               city,
+              user_id as "clientUserId",
               min(min_time) as min_time,
               max(max_time) as max_time,
               sum(views) as views,
@@ -101,8 +105,8 @@ async function clickhouseQuery(websiteId: string, sessionId: string) {
         from website_event_stats_hourly
         where website_id = {websiteId:UUID}
           and session_id = {sessionId:UUID}
-        group by session_id, distinct_id, visit_id, website_id, browser, os, device, screen, language, country, region, city) t
-    group by id, websiteId, distinctId, browser, os, device, screen, language, country, region, city;
+        group by session_id, distinct_id, visit_id, website_id, browser, os, device, screen, language, country, region, city, user_id) t
+    group by id, websiteId, distinctId, browser, os, device, screen, language, country, region, city, user_id;
     `,
     { websiteId, sessionId },
   ).then(result => result?.[0]);
